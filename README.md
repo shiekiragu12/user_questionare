@@ -12,11 +12,7 @@ A full-stack application featuring:
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Setup Guide](#setup-guide)
-- [Configuration](#configuration)
-- [API Documentation](#api-documentation)
-- [Deployment](#deployment)
-- [Troubleshooting](#troubleshooting)
-- [Frontend Details](#frontend-details)
+- [Frontend Details](#frontend-setup)
 
 ## Features
 - **Real-time AI responses** with streaming
@@ -62,7 +58,7 @@ cp .env.example .env
 # Run development server
 uvicorn app.main:app --reload
 
-### Frontend Setup
+## Frontend Setup
 ``bash
 cd user_questionare_frontend
 npm install
