@@ -1,19 +1,30 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from 'react';
 
-export interface Message {
+interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  metadata?: {
+    model?: string;
+    tokensUsed?: number;
+  };
+}
+
+interface APIResponse {
+  answer: string;
+  model: string;
+  tokens_used: number;
+  timestamp: string;
 }
 
 export default function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [model, setModel] = useState('gpt-3.5-turbo');
+  const [temperature, setTemperature] = useState(0.7);
 
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
@@ -36,53 +47,57 @@ export default function useChat() {
         },
         body: JSON.stringify({
           question: content,
-          user_id: 'anonymous', 
+          model,
+          temperature,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.detail || `HTTP error! Status: ${response.status}`
+        );
       }
 
-      const data = await response.json();
+      const data: APIResponse = await response.json();
 
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.answer,
         timestamp: new Date(data.timestamp),
+        metadata: {
+          model: data.model,
+          tokensUsed: data.tokens_used,
+        },
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      setError(
+        err instanceof Error 
+          ? err.message 
+          : 'An unknown error occurred'
+      );
+      console.error('API Error:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchHistory = async () => {
-    try {
-      const response = await fetch(
-        'http://localhost:8000/api/history?user_id=anonymous&limit=10'
-      );
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const data = await response.json();
-      const historyMessages = data.map((item: any) => ({
-        role: 'assistant' as const,
-        content: item.answer,
-        timestamp: new Date(item.timestamp),
-      }));
-      // You might want to merge this with existing messages
-    } catch (err) {
-      console.error('Failed to fetch history:', err);
-    }
+  const clearChat = () => {
+    setMessages([]);
+    setError(null);
   };
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
-  return { messages, isLoading, error, sendMessage };
+  return {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    clearChat,
+    model,
+    setModel,
+    temperature,
+    setTemperature,
+  };
 }
