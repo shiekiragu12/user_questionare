@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface Message {
+export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
