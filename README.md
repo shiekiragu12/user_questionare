@@ -38,7 +38,6 @@ A full-stack application featuring:
 - OpenAI API key
 
 ### Backend Setup
-``bash
 # Clone repository
 git clone https://github.com/shiekiragu12/user_questionare.git
 cd user_questionare_backend
